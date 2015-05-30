@@ -34,16 +34,17 @@ checkOutcome();
 outcome<-tolower(outcome);
 
 ## Return hospital name in that state with lowest 30-day death ## rate)
-if(outcome=='heart attack') chooseCol <- 11;
-if(outcome=='heart failure') chooseCol <- 17;
-if(outcome=='pneumonia') chooseCol <- 24;
+if(outcome=='heart attack') chooseCol <- 'Hospital.30.Day.Death..Mortality..Rates.from.Heart.Attack';
+if(outcome=='heart failure') chooseCol <- 'Hospital.30.Day.Death..Mortality..Rates.from.Heart.Failure';
+if(outcome=='pneumonia') chooseCol <- 'Hospital.30.Day.Death..Mortality..Rates.from.Pneumonia';
+
 ocm1<-read.csv('outcome-of-care-measures.csv', stringsAsFactors=FALSE);
-ocm2<-subset(ocm1, State==state, select=chooseCol);
-ocm3<-as.numeric(ocm2[,1]); # Convert characters to numeric. May throw a warning for NA's produced
-ocm4<-ocm3[complete.cases(ocm3)]; # Remove NA's
-lowestRate<-min(ocm4);
-indexOfLowest <- match(lowestRate, ocm3);
-bestHosp <- subset(ocm1, indexOfLowest==rownames(ocm1), select='Hospital.Name');
-# TODO: THIS FUNCTION IS RETURNING INCORRECT RESULTS
+
+ocm2<-subset(ocm1, State==state, select=c('Hospital.Name',chooseCol));
+
+indexOfLowest <-suppressWarnings(which.min(ocm2[,chooseCol])); # throws a warning for NA's introduced
+
+bestHosp <- subset(ocm2, indexOfLowest==rownames(ocm1), select='Hospital.Name');
+
 return(bestHosp);  
 }
