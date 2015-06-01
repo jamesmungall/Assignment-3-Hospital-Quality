@@ -43,6 +43,13 @@ ocm1<-read.csv('outcome-of-care-measures.csv', stringsAsFactors=FALSE);
 ocm2<-subset(ocm1, State==state, select=c('Hospital.Name',chooseCol));
 
 indexOfLowest <-suppressWarnings(which.min(ocm2[,chooseCol])); # throws a warning for NA's introduced
+# To ensure that I get both hospitals if there is a tie, I need to find the 
+# minimum value, and then find index of hospitals with this value.
+#minMortality <- min(ocm2[,chooseCol]);
+
+#booleanIndicesForMinMortality <- ocm2[,chooseCol] %in% minMortality;
+#bestHospWithMortalityRate <- ocm[booleanIndicesForMinMortality,];
+#  TODO - above code not working yet.
 
 bestHosp <- subset(ocm2, indexOfLowest==rownames(ocm1), select='Hospital.Name');
 
