@@ -36,7 +36,15 @@ rankall<- function(outcome, num = "best") {
   hd<-read.csv('hospital-data.csv',stringsAsFactors=F);
   allStates<-unique(hd$State);
   # TODO this is where I am up to. state does not exist, & needs to go into a loop
-  ocm2<-subset(ocm1, State==state, select=c('Hospital.Name',chooseCol));
-  
+ singleState = "AL";
+  ocm2<-subset(ocm1, State==singleState,select=c('Hospital.Name',chooseCol));
+ # remove "not available"
+ ocm2[,3] <- suppressWarnings(as.numeric(ocm2[,3]));# introduces NA's for "not available"
+ completeCasesBoolean<-complete.cases(ocm2);
+ ocm2 <- ocm2[completeCasesBoolean,]; 
+ 
+ # order data by increasing mortality rate (smallest first)
+ ocm2=ocm2[order(ocm2[,3]),];
+
   return(ocm2);
 }
