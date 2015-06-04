@@ -53,5 +53,5 @@ indexOfLowest <-suppressWarnings(which.min(ocm2[,chooseCol])); # throws a warnin
 
 bestHosp <- subset(ocm2, indexOfLowest==rownames(ocm1), select='Hospital.Name');
 
-return(bestHosp);  
+return(bestHosp$Hospital.Name);  
 }
