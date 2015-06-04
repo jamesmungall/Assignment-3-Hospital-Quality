@@ -29,22 +29,44 @@ rankall<- function(outcome, num = "best") {
   if(outcome=='heart attack') chooseCol <- 'Hospital.30.Day.Death..Mortality..Rates.from.Heart.Attack';
   if(outcome=='heart failure') chooseCol <- 'Hospital.30.Day.Death..Mortality..Rates.from.Heart.Failure';
   if(outcome=='pneumonia') chooseCol <- 'Hospital.30.Day.Death..Mortality..Rates.from.Pneumonia';
-  
+    
+
+  # Open outcome of care measures file
   ocm1<-read.csv('outcome-of-care-measures.csv', stringsAsFactors=FALSE);
+  getResultForSingleState<-function(singleState){
+    ocmSingleState<-subset(ocm1, State==singleState,select=c('Hospital.Name','State',chooseCol));
+    
+    # remove "not available"
+    ocmSingleState[,chooseCol] <- suppressWarnings(as.numeric(ocmSingleState[,chooseCol]));# introduces NA's for "not available"
+    completeCasesBoolean<-complete.cases(ocmSingleState);
+    ocmSingleStateCompleteCases <- ocmSingleState[completeCasesBoolean,]; 
+    
+    # order data by increasing mortality rate (smallest first)
+    ordering <-order(ocmSingleStateCompleteCases[,chooseCol]);
+    ocmSingleStateCompleteCasesOrdered=ocmSingleStateCompleteCases[ordering,];
+    
+    return(ocmSingleStateCompleteCasesOrdered);
+  }
+  
+  # We now select just the one hospital with the ranking as given in the argument, 'num', of the rankall function
+  getSingleHospital<-function(resultForSingleState, rank=num){
+    if(rank=='best') rank=1;
+    if(rank=='worst') rank=length(resultForSingleState[,1]);
+    if(!(is.integer(rank))) stop('Please use best, worst or an integer ranking');
+     return(resultForSingleState[rank,]);
+    
+  }
+  resultForSingleState<-getResultForSingleState(singleState='AL');
+  singleHospital<-getSingleHospital(resultForSingleState);
   
   # I want to check over all states
   hd<-read.csv('hospital-data.csv',stringsAsFactors=F);
   allStates<-unique(hd$State);
-  # TODO this is where I am up to. state does not exist, & needs to go into a loop
- singleState = "AL";
-  ocm2<-subset(ocm1, State==singleState,select=c('Hospital.Name',chooseCol));
- # remove "not available"
- ocm2[,3] <- suppressWarnings(as.numeric(ocm2[,3]));# introduces NA's for "not available"
- completeCasesBoolean<-complete.cases(ocm2);
- ocm2 <- ocm2[completeCasesBoolean,]; 
+  # TODO loop over all states
+  for(i in 1:length(allStates)){
+    
+  }
  
- # order data by increasing mortality rate (smallest first)
- ocm2=ocm2[order(ocm2[,3]),];
+  return(singleHospital);
 
-  return(ocm2);
 }
