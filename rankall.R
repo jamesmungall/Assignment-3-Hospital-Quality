@@ -30,12 +30,12 @@ rankall<- function(outcome, num = "best") {
   if(outcome=='heart failure') chooseCol <- 'Hospital.30.Day.Death..Mortality..Rates.from.Heart.Failure';
   if(outcome=='pneumonia') chooseCol <- 'Hospital.30.Day.Death..Mortality..Rates.from.Pneumonia';
     
-
   # Open outcome of care measures file
-  ocm1<-read.csv('outcome-of-care-measures.csv', stringsAsFactors=FALSE);
+# Use small sample data for now
+ocm1<-read.csv('sampleOutcomeOfMeasures.csv', stringsAsFactors=FALSE);
+  #  ocm1<-read.csv('outcome-of-care-measures.csv', stringsAsFactors=FALSE);
   getResultForSingleState<-function(singleState){
     ocmSingleState<-subset(ocm1, State==singleState,select=c('Hospital.Name','State',chooseCol));
-    
     # remove "not available"
     ocmSingleState[,chooseCol] <- suppressWarnings(as.numeric(ocmSingleState[,chooseCol]));# introduces NA's for "not available"
     completeCasesBoolean<-complete.cases(ocmSingleState);
@@ -49,24 +49,26 @@ rankall<- function(outcome, num = "best") {
   }
   
   # We now select just the one hospital with the ranking as given in the argument, 'num', of the rankall function
-  getSingleHospital<-function(resultForSingleState, rank=num){
-    if(rank=='best') rank=1;
-    if(rank=='worst') rank=length(resultForSingleState[,1]);
-    if(!(is.integer(rank))) stop('Please use best, worst or an integer ranking');
-     return(resultForSingleState[rank,]);
+  getSingleHospital<-function(resultForSingleState){
+    # validate num argument, given as second argument to rankall function
+    if(num=='best') num=1;
+    if(num=='worst') num=length(resultForSingleState[,1]);
+    if(!(is.numeric(num))) stop('Please use best, worst or an integer for ranking');
+     return(resultForSingleState[num,]);
     
   }
-  resultForSingleState<-getResultForSingleState(singleState='AL');
-  singleHospital<-getSingleHospital(resultForSingleState);
-  
+ 
   # I want to check over all states
   hd<-read.csv('hospital-data.csv',stringsAsFactors=F);
   allStates<-unique(hd$State);
   # TODO loop over all states
+allHospitals=data.frame();
   for(i in 1:length(allStates)){
-    
+    resultForSingleState<-getResultForSingleState(singleState=allStates[i]);
+    singleHospital<-getSingleHospital(resultForSingleState);
+    allHospitals<-rbind(allHospitals,singleHospital);
   }
  
-  return(singleHospital);
+  return(allHospitals);
 
 }
