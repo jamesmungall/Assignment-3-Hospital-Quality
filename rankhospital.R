@@ -1,4 +1,4 @@
-best <- function(state, outcome){
+rankhospital <- function(state, outcome, num = 'best'){
   ## Read outcome data
   ## Check that state and outcome are valid
   ## Return hospital name in that state with lowest 30-day death rate
@@ -32,17 +32,37 @@ best <- function(state, outcome){
     if(outcome=='pneumonia') chooseCol <- 'Hospital.30.Day.Death..Mortality..Rates.from.Pneumonia';
     return(chooseCol)
   }
+  turnNumIntoAnAppropriateValue<-function(){}
   checkOutcome();
   checkState();
   outcome<-turnOutcomeIntoMortalityRateColumnNames();
-    
-  tbl_df(read.csv('outcome-of-care-measures.csv', stringsAsFactors=F)) %>%
+suppressWarnings(    # NAs introduced during mutate due to 'not available' data
+  r1 <- tbl_df(read.csv('outcome-of-care-measures.csv', stringsAsFactors=F)) %>%
     select(Hospital.Name,State,mortalityRate=one_of(outcome)) %>%
     filter(State==state) %>%
     mutate(mortalityRateNumeric=as.numeric(mortalityRate)) %>%
-    arrange(Hospital.Name) %>%
-    filter(rank(mortalityRateNumeric, ties.method="first")==1) %>%
+    arrange(mortalityRateNumeric,Hospital.Name) %>%
+    na.omit()
+) 
+# Work with num
+#----------------
+# Now that we know the mortality rate vector we can do logical work with num.
+# Firstly, turn 'best' and 'worst' into numbers.
+# Secondly, test that num is not too big.
+  if(num=='best') 1 -> num;
+lengthMortalityRateVector <- r1 %>% count %>% as.numeric
+  if(num=='worst') lengthMortalityRateVector -> num
+  if(!(is.numeric(num))) stop('Please use best, worst or an integer for ranking');
+if(num > lengthMortalityRateVector){
+  return(NA) # Cannot request a higher ranking than the length of mortality rate vector
+}
+
+#-------
+#Continue to filter now we have verified num.  
+  r1 %>%
+    filter(rank(mortalityRateNumeric, ties.method="first")==num) %>%
     select(Hospital.Name) %>%
     as.character()
+
 
 }
